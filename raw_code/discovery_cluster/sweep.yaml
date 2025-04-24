@@ -1,0 +1,75 @@
+# method: grid
+# metric:
+#   name: test/acc_mean
+#   goal: maximize
+  
+# program: train.py
+# count: 1  
+
+# parameters:
+#   # core meta‐learning params
+#   lr:
+#     values: [1e-4, 1e-2]
+#   embedder_layers:
+#     values: [4, 6, 8]
+#   hypernet_layers:
+#     values: [2, 3, 4]
+#   learn_sigma_n:
+#     values: [true, false]
+#   META_EPOCHS:
+#     values: [1000, 2000, 3000]
+
+#   # regularization / model size
+#   weight_decay:
+#     values: [1e-5, 1e-3]
+#   feature_dim:
+#     values: [32, 64, 128]
+#   hypernet_hidden:
+#     values: [128, 256, 512]
+
+#   # training‐loop batch sizes
+#   meta_batch_size:
+#     values: [2, 4]
+#   Q_query:
+#     values: [15]
+
+#   # architecture‐level tweaks
+#   bn_momentum:
+#     values: [0.1]
+#   dropout:
+#     values: [0.1]
+
+#   # optimizer hyper‐params
+#   beta1:
+#     values: [0.5]
+#   beta2:
+#     values: [0.99]
+method: grid
+program: train.py
+metric:
+  name: test/acc_mean
+  goal: maximize
+# count=1 since each cell in the grid is run once
+count: 1  
+
+parameters:
+  # existing axes…
+  embedder_layers:
+    values: [6]
+    # values: [4, 6, 8]
+  hypernet_layers:
+    values: [2]
+    # values: [1, 2, 3]
+
+  # new axes
+  lr:
+    values: [1e-3]
+    # values: [1e-3, 1e-4, 1e-5]
+
+  feature_dim:
+    values: [64]
+    # values: [32, 64, 128]
+
+  hypernet_hidden:
+    values: [256]
+    # values: [128, 256, 512]
