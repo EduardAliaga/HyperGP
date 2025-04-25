@@ -1,0 +1,5 @@
+numpy<0
+seaborn
+tqdm
+torch
+torchvision
