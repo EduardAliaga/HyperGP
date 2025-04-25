@@ -53,24 +53,12 @@ This repository implements **HyperGP**, a few-shot meta-learning model that comb
 
 ## Preparing the Dataset
 
-### CUB-200-2011
-
-Download and extract the dataset so that you have a folder structure like:
+Download and extract the dataset:
+```bash
+cd data/CUB
+sh download_dataset.sh
 ```
-data/CUB/CUB_200_2011/
-├── images.txt
-├── image_class_labels.txt
-└── images/
-    ├── 000001.jpg
-    ├── 000002.jpg
-    └── ...
-```
-
-When running the training script, point `--dataset-path` to `./CUB/CUB_200_2011`.
-
-### mini-ImageNet (Optional)
-
-If you wish to use mini-ImageNet, prepare the folder of splits accordingly and use `--dataset miniimagenet`.
+When running the training script, point `--dataset-path` to `./data/CUB/CUB_200_2011`.
 
 ## Usage
 
@@ -79,7 +67,7 @@ Run the main script with the required arguments:
 ```bash
 python train_hypergp.py \
   --dataset cub \
-  --dataset-path ./CUB/CUB_200_2011 \
+  --dataset-path ./data/CUB/CUB_200_2011 \
   --pretrained-embedder path/to/embedder_checkpoint.pth \
   [--finetune-embedder] \
   [--n-way 5] [--k-shot 5] [--q-query 16] \
