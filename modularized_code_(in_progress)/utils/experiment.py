@@ -7,38 +7,33 @@ import json
 
 class ExperimentManager:
     """
-    Clase para gestionar experimentos, guardando resultados,
-    checkpoints y estadísticas de manera organizada.
+    Class to manage experiments, saving results,
+    checkpoints, and statistics in an organized manner.
     """
     def __init__(self, config, experiment_name=None):
         """
-        Inicializa el gestor de experimentos.
+        Initializes the ExperimentManager with a given configuration.
         
         Args:
-            config (dict): Configuración del experimento
-            experiment_name (str, optional): Nombre del experimento
+            config (dict): Experiment configuration
+            experiment_name (str, optional): Experiment name
         """
         self.config = config
         
-        # Generar nombre de experimento si no se proporciona
         if experiment_name is None:
             self.experiment_name = f"exp_{int(time.time())}"
         else:
             self.experiment_name = experiment_name
         
-        # Configurar directorios
         self.base_dir = config.get('save_dir', 'experiments')
         self.exp_dir = os.path.join(self.base_dir, self.experiment_name)
         
-        # Crear subdirectorios
         os.makedirs(self.exp_dir, exist_ok=True)
         for subdir in ['models', 'figures', 'logs', 'checkpoints', 'results']:
             os.makedirs(os.path.join(self.exp_dir, subdir), exist_ok=True)
         
-        # Guardar configuración
         self.save_config()
         
-        # Inicializar contadores y registros
         self.epoch = 0
         self.best_val_acc = 0.0
         self.metrics = {
@@ -50,8 +45,8 @@ class ExperimentManager:
         }
     
     def save_config(self):
-        """Guarda la configuración del experimento en formato JSON."""
-        # Convertir valores no serializables a strings
+        """Saves the experiment configuration to a JSON file."""
+
         serializable_config = {}
         for k, v in self.config.items():
             if isinstance(v, torch.device):
@@ -65,13 +60,13 @@ class ExperimentManager:
     
     def get_model_path(self, filename=None):
         """
-        Retorna la ruta para guardar/cargar un modelo.
+        Returns the path to save/load a model.
         
         Args:
-            filename (str, optional): Nombre del archivo
+            filename (str, optional)
             
         Returns:
-            str: Ruta completa
+            str: path to the model file
         """
         if filename is None:
             filename = f"model_epoch_{self.epoch}.pth"
@@ -79,13 +74,13 @@ class ExperimentManager:
     
     def get_checkpoint_path(self, epoch=None):
         """
-        Retorna la ruta para guardar/cargar un checkpoint.
+        Returns the path to save/load a checkpoint.
         
         Args:
-            epoch (int, optional): Época del checkpoint
+            epoch (int, optional): Checkpoint epoch
             
         Returns:
-            str: Ruta completa
+            str: path to the checkpoint file
         """
         if epoch is None:
             epoch = self.epoch
@@ -93,20 +88,18 @@ class ExperimentManager:
     
     def save_checkpoint(self, state, is_best=False):
         """
-        Guarda un checkpoint del estado actual del entrenamiento.
+        Saves the current state of the model and optimizer.
         
         Args:
-            state (dict): Estado a guardar
-            is_best (bool, optional): Si es el mejor modelo hasta ahora
+            state (dict): Saving state (model, optimizer, epoch, etc.)
+            is_best (bool, optional): If this is the best model so far
             
         Returns:
-            str: Ruta del checkpoint guardado
+            str: path to the saved checkpoint
         """
-        # Guardar checkpoint normal
         checkpoint_path = self.get_checkpoint_path()
         torch.save(state, checkpoint_path)
         
-        # Guardar también como mejor modelo si corresponde
         if is_best:
             best_model_path = self.get_model_path('best_model.pth')
             torch.save(state, best_model_path)
@@ -115,26 +108,23 @@ class ExperimentManager:
     
     def load_checkpoint(self, path=None, map_location=None):
         """
-        Carga un checkpoint guardado.
+        Loads a checkpoint from the specified path.
         
         Args:
-            path (str, optional): Ruta al checkpoint
-            map_location: Argumento para torch.load
+            path (str, optional): Path to the checkpoint file
+            map_location: Argument for torch.load
             
         Returns:
-            dict: Estado cargado
+            dict: Loaded state dictionary
         """
         if path is None:
             path = self.get_checkpoint_path()
         
         try:
-            # Intentar cargar con seguridad para versiones recientes de PyTorch
             state = torch.load(path, map_location=map_location, weights_only=False)
         except:
-            # Fallback a carga estándar
             state = torch.load(path, map_location=map_location)
             
-        # Actualizar contadores internos
         if 'epoch' in state:
             self.epoch = state['epoch']
         if 'best_val_acc' in state:
@@ -144,10 +134,10 @@ class ExperimentManager:
     
     def record_metrics(self, metrics_dict):
         """
-        Registra métricas de un paso de entrenamiento/validación.
+        Register metrics for the current experiment.
         
         Args:
-            metrics_dict (dict): Métricas a registrar
+            metrics_dict (dict): Metrics to register
         """
         for key, value in metrics_dict.items():
             if key not in self.metrics:
@@ -156,19 +146,16 @@ class ExperimentManager:
     
     def save_metrics(self):
         """
-        Guarda todas las métricas registradas.
+        Saves the metrics to a file.
         
         Returns:
-            str: Ruta del archivo de métricas
+            str: path to the saved metrics file
         """
-        # Añadir tiempo total de entrenamiento
         self.metrics['training_time'] = time.time() - self.metrics['start_time']
         
-        # Guardar métricas como archivo numpy
         metrics_path = os.path.join(self.exp_dir, 'results', 'metrics.npz')
         np.savez(metrics_path, **self.metrics)
         
-        # También guardar algunos resultados clave en formato texto
         summary_path = os.path.join(self.exp_dir, 'results', 'summary.txt')
         with open(summary_path, 'w') as f:
             f.write(f"Experiment: {self.experiment_name}\n")
@@ -190,37 +177,36 @@ class ExperimentManager:
     
     def log_message(self, message, log_type='train'):
         """
-        Registra un mensaje en el archivo de log.
+        Writes a message to the log file and prints it to the console.
         
         Args:
-            message (str): Mensaje a registrar
-            log_type (str): Tipo de log (train, val, test)
+            message (str)
+            log_type (str): (train, val, test)
         """
         log_path = os.path.join(self.exp_dir, 'logs', f"{log_type}.log")
         with open(log_path, 'a') as f:
             f.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {message}\n")
         
-        # También mostrar en consola
         tqdm.write(message)
     
     def update_epoch(self, increment=1):
         """
-        Incrementa el contador de épocas.
+        Updates the current epoch.
         
         Args:
-            increment (int, optional): Cantidad a incrementar
+            increment (int, optional): Number of epochs to increment
         """
         self.epoch += increment
         
     def update_best_val_acc(self, val_acc):
         """
-        Actualiza la mejor precisión de validación si es necesario.
+        Updates the best validation accuracy if the new accuracy is better.
         
         Args:
-            val_acc (float): Nueva precisión de validación
+            val_acc (float): New validation accuracy
             
         Returns:
-            bool: Si se mejoró el mejor resultado
+            bool: If the new accuracy is better than the previous best
         """
         if val_acc > self.best_val_acc:
             self.best_val_acc = val_acc
@@ -228,13 +214,13 @@ class ExperimentManager:
         return False
     
     def get_figures_dir(self):
-        """Retorna el directorio para guardar figuras."""
+        """Returns the directory for saving figures."""
         return os.path.join(self.exp_dir, 'figures')
     
     def get_results_dir(self):
-        """Retorna el directorio para guardar resultados."""
+        """Returns the directory for saving results."""
         return os.path.join(self.exp_dir, 'results')
     
     def get_logs_dir(self):
-        """Retorna el directorio para guardar logs."""
+        """Returns the directory for saving logs."""
         return os.path.join(self.exp_dir, 'logs')

@@ -7,13 +7,12 @@ from collections import defaultdict
 
 class CUBDataset:
     """
-    Clase para manejar el dataset CUB-200-2011.
-    Proporciona funciones para cargar y procesar imágenes.
+    Functions to load and process images from the CUB-200-2011 dataset.
     """
     def __init__(self, dataset_dir):
         """
         Args:
-            dataset_dir (str): Directorio que contiene el dataset CUB-200-2011
+            dataset_dir (str): path to the dataset
         """
         self.dataset_dir = dataset_dir
         self.images_file = os.path.join(dataset_dir, "images.txt")
@@ -22,10 +21,10 @@ class CUBDataset:
     
     def load_images(self):
         """
-        Carga los nombres de los archivos de imagen y sus etiquetas.
+        Load images and labels from the dataset.
         
         Returns:
-            tuple: Lista de nombres de archivo y lista de etiquetas
+            tuple: names of the files and labels
         """
         imgs, lbs = [], []
         with open(self.images_file) as f:
@@ -40,15 +39,15 @@ class CUBDataset:
     
     def build_class_dict(self, imgs, lbs, transform):
         """
-        Construye un diccionario de imágenes por clase.
+        Build a dictionary of images by class.
         
         Args:
-            imgs (list): Lista de nombres de archivo
-            lbs (list): Lista de etiquetas
-            transform: Transformaciones para aplicar a las imágenes
+            imgs (list): List of file names
+            lbs (list): List of labels
+            transform: IMage transformations
             
         Returns:
-            dict: Diccionario {clase: [imágenes transformadas]}
+            dict: {class: [transformed images]}
         """
         d = defaultdict(list)
         for fn, lb in zip(imgs, lbs):
@@ -59,14 +58,14 @@ class CUBDataset:
 
 class MiniImageNetDataset(Dataset):
     """
-    Dataset personalizado para MiniImageNet.
+    Functions to load and process images from the MiniImageNet.
     """
     def __init__(self, root, synsets=None, transform=None):
         """
         Args:
-            root (str): Directorio que contiene el dataset MiniImageNet
-            synsets (list, optional): Lista de clases a incluir
-            transform: Transformaciones para aplicar a las imágenes
+            root (str): path to the dataset
+            synsets (list, optional): List of classes to use
+            transform: Iameg transformations
         """
         self.root = root
         self.transform = transform
@@ -75,15 +74,12 @@ class MiniImageNetDataset(Dataset):
         self.classes = []
         
         if synsets is None:
-            # Usar todas las clases disponibles
             self.synsets = [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
         else:
             self.synsets = synsets
         
-        # Crear mapeo de etiquetas
         self.class_to_idx = {cls_name: i for i, cls_name in enumerate(self.synsets)}
         
-        # Recopilar todas las muestras
         for class_name in self.synsets:
             class_dir = os.path.join(root, class_name)
             if not os.path.isdir(class_dir):
@@ -101,18 +97,18 @@ class MiniImageNetDataset(Dataset):
                 self.targets.append(class_idx)
     
     def __len__(self):
-        """Retorna el número de muestras en el dataset."""
+        """Returns the number of samples in the dataset."""
         return len(self.samples)
     
     def __getitem__(self, idx):
         """
-        Retorna una muestra del dataset.
+        Returns one sample from the dataset.
         
         Args:
-            idx (int): Índice de la muestra
+            idx (int): sample index
             
         Returns:
-            tuple: (imagen transformada, etiqueta)
+            tuple: (transformed image, label)
         """
         img_path, target = self.samples[idx]
         img = Image.open(img_path).convert('RGB')
@@ -123,47 +119,45 @@ class MiniImageNetDataset(Dataset):
         return img, target
 
 
-# Funciones auxiliares
 def load_cub_images(dataset_dir):
     """
-    Wrapper para cargar imágenes CUB usando la clase CUBDataset.
+    Wrapper to load the CUB images.
     
     Args:
-        dataset_dir (str): Directorio del dataset CUB
+        dataset_dir (str): path to the dataset
         
     Returns:
-        tuple: Lista de nombres de archivo y lista de etiquetas
+        tuple: List of file names and labels
     """
     cub_dataset = CUBDataset(dataset_dir)
     return cub_dataset.load_images()
 
 def build_class_dict(imgs, lbs, transform, dataset_dir):
     """
-    Wrapper para construir un diccionario de imágenes por clase.
+    Build a dictionary of images by class.
     
     Args:
-        imgs (list): Lista de nombres de archivo
-        lbs (list): Lista de etiquetas
-        transform: Transformaciones para aplicar a las imágenes
-        dataset_dir (str): Directorio del dataset
+        imgs (list): List of file names
+        lbs (list): List of labels
+        transform: IMage transformations
         
     Returns:
-        dict: Diccionario {clase: [imágenes transformadas]}
+        dict: {class: [transformed images]}
     """
     cub_dataset = CUBDataset(dataset_dir)
     return cub_dataset.build_class_dict(imgs, lbs, transform)
 
 def split_classes(labels, ratio=0.8, seed=None):
     """
-    Divide las clases en conjuntos de entrenamiento y prueba.
+    Divides the classes into training and testing sets.
     
     Args:
-        labels (list): Lista de etiquetas de clase
-        ratio (float, optional): Proporción para entrenamiento
-        seed (int, optional): Semilla para reproducibilidad
+        labels (list): List of labels
+        ratio (float, optional): trainig and testing ratio
+        seed (int, optional): Random seed for reproducibility
         
     Returns:
-        tuple: Clases de entrenamiento y clases de prueba
+        tuple: training and testing classes
     """
     if seed is not None:
         random_state = random.getstate()
